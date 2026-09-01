@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% block title %}{{ child.name }} · 아동 데이터{% endblock %}
-{% block body %}
+{% block content %}
 <div class="card"><div class="card-head"><div><h2 style="margin:0">{{ child.name }} 아동 데이터</h2><div class="muted">{{ child.birth_date or '-' }} · 담당 {{ child.therapist.name if child.therapist else '-' }}</div></div>
 <div><a class="btn" href="{{ url_for('children') }}">← 목록</a> <a class="btn green" href="{{ url_for('report', child_id=child.id) }}">평가 비교 · 결과지</a></div></div>
 <div class="card-body">
