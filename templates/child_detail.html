@@ -10,7 +10,27 @@
 </div>
 {% for key, area in programs.items() %}
 <div class="area" style="margin-bottom:10px"><h3>{{ area.label }} <span class="muted">· {{ area.sub }}</span></h3>
-<div class="items">{% for item in area["items"] %}<a class="item" href="{{ url_for('program', child_id=child.id, area_key=key, item_index=item.item_index) }}">{{ loop.index }}) {{ item.name }}</a>{% endfor %}</div></div>
+<div class="items">
+{% for item in area["items"] %}
+    {% set item_status = item_status_map.get((key, item.item_index), '미시작') %}
+
+    <a class="item"
+       style="
+       {% if item_status == '진행중' %}
+           background:#2f6fda; border-color:#2f6fda; color:#ffffff;
+       {% elif item_status == '중단' %}
+           background:#dc5f5b; border-color:#dc5f5b; color:#ffffff;
+       {% elif item_status == '완료' %}
+           background:#1aa776; border-color:#1aa776; color:#ffffff;
+       {% else %}
+           background:#ffffff; color:#475467;
+       {% endif %}
+       "
+       href="{{ url_for('program', child_id=child.id, area_key=key, item_index=item.item_index) }}">
+        {{ loop.index }}) {{ item.name }}
+    </a>
+{% endfor %}
+</div>
 {% endfor %}
 </div></div>
 <script>
