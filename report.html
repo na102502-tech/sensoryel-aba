@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><div class="head"><div><small>{{child.name}}</small><h2>평가 비교 · 결과지</h2></div><div class="no-print"><button class="btn primary" onclick="window.print()">인쇄</button> <a class="btn" href="{{url_for('child_detail',child_id=child.id)}}">돌아가기</a></div></div><div class="body">
+<div class="grid"><div class="info"><small>아동명</small><b>{{child.name}}</b></div><div class="info"><small>생년월일</small><b>{{child.birth_date or '-'}}</b></div><div class="info"><small>담당 재활사</small><b>{{child.therapist.name if child.therapist else '-'}}</b></div><div class="info"><small>서비스 시작일</small><b>{{child.start_date or '-'}}</b></div></div>
+<h3>영역별 초기-최근 비교</h3><table><thead><tr><th>영역</th><th>초기 정반응률</th><th>최근 정반응률</th><th>변화</th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{r.label}}</td><td>{{r.initial if r.initial is not none else '-'}}{% if r.initial is not none %}%{% endif %}</td><td>{{r.latest if r.latest is not none else '-'}}{% if r.latest is not none %}%{% endif %}</td><td>{% if r.change is not none %}{{'+' if r.change>=0 else ''}}{{r.change}}%p{% else %}-{% endif %}</td></tr>{% endfor %}</tbody></table>
+<h3>자동 해설</h3><div class="info" style="line-height:1.7">{{summary}}</div>
+<h3>발달연령 참고</h3><div class="info" style="line-height:1.7">현재 프로그램은 기준참조형 목표이므로 프로그램 수행만으로 ‘몇 개월 지연’을 자동 산출하지 않습니다. 연령규준이 있는 표준화 검사 또는 신뢰할 수 있는 발달 규준을 별도로 연결한 경우에만 생활연령 대비 참고 수준을 제시하도록 운영하는 것이 안전합니다.</div>
+</div></div>{% endblock %}

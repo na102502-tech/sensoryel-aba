@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><div class="head"><h2>새 아동 추가</h2><a class="btn" href="{{url_for('children')}}">목록</a></div><div class="body">
+<form method="post"><div class="formgrid"><label>아동 이름<input name="name" required></label><label>생년월일<input name="birth_date" type="date"></label>
+<label>서비스 시작일<input name="start_date" type="date"></label><label>보호자 연락처<input name="guardian_phone"></label>
+<label>담당 재활사<select name="therapist_id"><option value="">미배정</option>{% for u in therapists %}<option value="{{u.id}}">{{u.name}} ({{u.username}})</option>{% endfor %}</select></label>
+<label>메모<textarea name="note"></textarea></label></div><p><button class="btn primary">등록</button></p></form></div></div>{% endblock %}

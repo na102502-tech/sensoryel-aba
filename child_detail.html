@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><div class="head"><h2>{{child.name}} 아동 데이터</h2><a class="btn" href="{{url_for('children')}}">목록</a></div><div class="body">
+<div class="grid"><div class="info"><small>생년월일</small><b>{{child.birth_date or '-'}}</b></div><div class="info"><small>담당 재활사</small><b>{{child.therapist.name if child.therapist else '-'}}</b></div><div class="info"><small>시작일</small><b>{{child.start_date or '-'}}</b></div><div class="info"><small>상태</small><b>{{child.status}}</b></div></div>
+<p><a class="btn green" href="{{url_for('report',child_id=child.id)}}">평가 비교 · 결과지</a></p>
+<div class="tabs">{% for key,a in programs.items() %}<a class="tab" href="{{url_for('program',child_id=child.id,area_key=key,item_index=0)}}">{{a.label}}</a>{% endfor %}</div>
+</div></div>{% endblock %}

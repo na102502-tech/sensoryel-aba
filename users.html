@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><div class="head"><h2>계정 관리</h2><a class="btn" href="{{url_for('children')}}">아동 목록</a></div><div class="body">
+<form method="post"><div class="formgrid"><label>이름<input name="name" required></label><label>아이디<input name="username" required></label><label>초기 비밀번호<input name="password" type="password" required></label><label>권한<select name="role"><option value="therapist">재활사</option><option value="admin">관리자</option></select></label></div><p><button class="btn primary">계정 생성</button></p></form>
+<table><thead><tr><th>이름</th><th>아이디</th><th>권한</th><th>상태</th><th>비밀번호 재설정</th><th>활성/비활성</th></tr></thead><tbody>
+{% for u in users %}<tr><td>{{u.name}}</td><td>{{u.username}}</td><td>{{u.role}}</td><td>{{'활성' if u.active else '비활성'}}</td><td><form method="post" action="{{url_for('admin_user_password',user_id=u.id)}}" style="display:flex;gap:6px"><input name="password" type="password" placeholder="새 비밀번호" required style="margin:0"><button class="btn">변경</button></form></td><td>{% if u.username!='na102502' %}<form method="post" action="{{url_for('admin_user_toggle',user_id=u.id)}}"><button class="btn">{{'비활성화' if u.active else '활성화'}}</button></form>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div></div>{% endblock %}

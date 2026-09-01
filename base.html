@@ -1,0 +1,31 @@
+
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ title or "ABA 프로그램" }}</title>
+<style>
+:root{--bg:#f5f7fa;--card:#fff;--line:#dde3ea;--text:#1f2937;--muted:#667085;--blue:#2f6fda;--green:#1aa776;--amber:#d9a127;--red:#dc5f5b;--navy:#242933}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Arial,sans-serif;color:var(--text)}
+a{text-decoration:none;color:inherit}.wrap{max-width:1300px;margin:0 auto;padding:18px}.top{background:var(--navy);color:#fff;border-radius:14px;padding:15px 18px;display:flex;justify-content:space-between;align-items:center}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;margin-top:14px;overflow:hidden}.head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center}.body{padding:16px}
+.btn{display:inline-block;border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 12px;font-weight:700;cursor:pointer}.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.green{background:var(--green);color:#fff;border-color:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px;border-bottom:1px solid #edf0f3;text-align:left}th{background:#fafbfc;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.info{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fbfcfd}.info small{display:block;color:var(--muted);margin-bottom:5px}
+.flash{padding:10px;border-radius:8px;background:#fff7e6;color:#8a6417;margin-top:12px}.tabs{display:flex;flex-wrap:wrap;gap:7px}.tab{padding:8px 11px;border-radius:7px;border:1px solid #9db7e3;color:#355b96;background:#fff}.items{display:flex;gap:7px;overflow:auto;padding:10px 0}.item{white-space:nowrap;padding:7px 10px;border:1px solid #9ac9b5;border-radius:7px;color:#3c7f65}
+.trials{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.trial{height:46px;border:1px solid #cfd6df;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;background:#f8fafc;cursor:pointer}.plus{background:var(--green);color:#fff}.prompt{background:#f4ce68;color:#70500f}.minus{background:#e56d68;color:#fff}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.metric{border:1px solid var(--line);border-radius:8px;padding:10px}.metric small{display:block;color:var(--muted)}
+input,select,textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;margin-top:5px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}}
+@media print{.no-print,.top{display:none!important}.wrap{max-width:none;padding:0}.card{border:0;margin:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><b>ABA 프로그램</b><div>{{ current_user.name if current_user.is_authenticated else "" }}{% if current_user.is_authenticated %} · <a href="{{ url_for('logout') }}">로그아웃</a>{% endif %}</div></div>
+{% with messages = get_flashed_messages() %}{% if messages %}{% for m in messages %}<div class="flash">{{m}}</div>{% endfor %}{% endif %}{% endwith %}
+{% block content %}{% endblock %}
+</div>
+</body>
+</html>
