@@ -1,18 +1,300 @@
-{% extends "base.html" %}{% block title %}{{ child.name }} · {{ area.label }}{% endblock %}
+{% extends "base.html" %}
+{% block title %}{{ child.name }} · {{ area.label }}{% endblock %}
+
 {% block content %}
-<div class="card"><div class="card-head"><div><div class="muted">{{ child.name }} &gt; {{ area.label }}</div><h2 style="margin:4px 0 0">{{ item }}</h2></div><a class="btn" href="{{ url_for('child_detail', child_id=child.id) }}">← 아동 데이터</a></div>
-<div class="card-body">
-<div class="items" style="margin-bottom:14px">{% for it in area["items"] %}<a class="item {% if it.item_index==item_index %}pill{% endif %}" href="{{ url_for('program',child_id=child.id,area_key=area_key,item_index=it.item_index) }}">{{ loop.index }}) {{ it.name }}</a>{% endfor %}</div>
-<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px">{% for s in ['진행중','중단','완료'] %}<form method="post"><input type="hidden" name="action" value="status"><input type="hidden" name="status" value="{{ s }}"><button class="btn {% if state.status==s %}green{% endif %}">{{ s }}</button></form>{% endfor %}<span class="pill">{{ state.status }}</span></div>
-<div class="grid grid-2"><div><h3>회기 기록</h3><form method="post"><input type="hidden" name="action" value="save_session"><input type="hidden" name="trials" id="trialsInput">
-<div class="grid grid-2"><label>회기 번호<input type="number" name="session_no" min="1" value="{{ (records|length)+1 }}" required></label><label>기록일<input type="date" name="record_date"></label></div>
-<p class="muted">각 칸을 누르면 + → P → - → 빈칸으로 변경됩니다.</p><div class="trial-grid">{% for i in range(10) %}<button type="button" class="trial" data-value="" onclick="cycleTrial(this)">{{ i+1 }}</button>{% endfor %}</div>
-<div class="grid grid-3" style="margin-top:10px"><div class="stat"><span>정반응 +</span><b id="plusCount">0</b></div><div class="stat"><span>촉구 P</span><b id="promptCount">0</b></div><div class="stat"><span>오반응 -</span><b id="minusCount">0</b></div></div>
-<button class="btn primary" style="margin-top:12px">회기 저장</button></form></div>
-<div><h3>기존 기록</h3><table class="table"><thead><tr><th>회기</th><th>날짜</th><th>+</th><th>P</th><th>-</th><th>정반응률</th></tr></thead><tbody>
-{% for st in stats %}<tr><td>{{ st.session }}</td><td>{{ st.date }}</td><td>{{ st.plus }}</td><td>{{ st.prompt }}</td><td>{{ st.minus }}</td><td><b>{{ st.plus_rate }}%</b></td></tr>{% else %}<tr><td colspan="6" class="muted">아직 기록이 없습니다.</td></tr>{% endfor %}
-</tbody></table></div></div></div></div>
+<style>
+  .program-page{
+    max-width:1180px;
+    margin:0 auto;
+  }
+  .program-nav{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:4px 0 10px;
+    margin-bottom:14px;
+  }
+  .program-nav .item{
+    white-space:nowrap;
+    flex:0 0 auto;
+  }
+  .record-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(320px,.9fr);
+    gap:20px;
+    align-items:start;
+  }
+  .session-box{
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+    background:#fff;
+  }
+  .session-top{
+    display:grid;
+    grid-template-columns:140px 1fr;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .trial-help{
+    font-size:12px;
+    color:var(--muted);
+    margin:4px 0 10px;
+  }
+  .trial-grid{
+    display:grid !important;
+    grid-template-columns:repeat(5, minmax(72px, 1fr)) !important;
+    gap:8px !important;
+    width:100%;
+  }
+  .trial{
+    width:100% !important;
+    height:54px !important;
+    min-width:0 !important;
+    border:1px solid #d0d7e2 !important;
+    border-radius:9px !important;
+    background:#f8fafc !important;
+    color:#667085 !important;
+    font-size:18px !important;
+    font-weight:900 !important;
+    cursor:pointer;
+    transition:.12s ease;
+  }
+  .trial:hover{
+    border-color:#98a2b3 !important;
+  }
+  .trial.plus{
+    background:#1aa776 !important;
+    border-color:#1aa776 !important;
+    color:#fff !important;
+  }
+  .trial.prompt{
+    background:#f4ce68 !important;
+    border-color:#e5b93e !important;
+    color:#6f4d08 !important;
+  }
+  .trial.minus{
+    background:#e56d68 !important;
+    border-color:#e56d68 !important;
+    color:#fff !important;
+  }
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin-top:12px;
+  }
+  .summary-card{
+    border:1px solid var(--line);
+    background:#fbfcfd;
+    border-radius:9px;
+    padding:10px;
+    text-align:center;
+  }
+  .summary-card span{
+    display:block;
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:4px;
+  }
+  .summary-card b{
+    font-size:20px;
+  }
+  .save-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:14px;
+  }
+  .status-row{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-bottom:16px;
+  }
+  .history-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+  .history-table th,
+  .history-table td{
+    padding:10px 8px;
+    border-bottom:1px solid #edf0f3;
+    text-align:center;
+  }
+  .history-table th{
+    background:#fafbfc;
+    color:var(--muted);
+    font-size:12px;
+  }
+  .history-table td:first-child,
+  .history-table th:first-child{
+    text-align:left;
+  }
+  @media(max-width:850px){
+    .record-layout{grid-template-columns:1fr}
+  }
+  @media(max-width:600px){
+    .trial-grid{grid-template-columns:repeat(5,1fr) !important}
+    .trial{height:46px !important;font-size:16px !important}
+    .session-top{grid-template-columns:1fr}
+  }
+</style>
+
+<div class="program-page">
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="muted">{{ child.name }} &gt; {{ area.label }}</div>
+        <h2 style="margin:4px 0 0">{{ item }}</h2>
+      </div>
+      <a class="btn" href="{{ url_for('child_detail', child_id=child.id) }}">← 아동 데이터</a>
+    </div>
+
+    <div class="card-body">
+      <div class="program-nav">
+        {% for it in area["items"] %}
+          <a class="item {% if it.item_index==item_index %}pill{% endif %}"
+             href="{{ url_for('program', child_id=child.id, area_key=area_key, item_index=it.item_index) }}">
+             {{ loop.index }}) {{ it.name }}
+          </a>
+        {% endfor %}
+      </div>
+
+      <div class="status-row">
+        {% for s in ['진행중','중단','완료'] %}
+          <form method="post" style="margin:0">
+            <input type="hidden" name="action" value="status">
+            <input type="hidden" name="status" value="{{ s }}">
+            <button class="btn {% if state.status==s %}green{% endif %}">{{ s }}</button>
+          </form>
+        {% endfor %}
+        <span class="pill">현재 상태 · {{ state.status }}</span>
+      </div>
+
+      <div class="record-layout">
+        <div class="session-box">
+          <h3 style="margin-top:0">회기 기록</h3>
+
+          <form method="post" id="sessionForm">
+            <input type="hidden" name="action" value="save_session">
+            <input type="hidden" name="trials" id="trialsInput" value="">
+
+            <div class="session-top">
+              <label>
+                회기 번호
+                <input type="number" name="session_no" min="1"
+                       value="{{ (records|length)+1 }}" required>
+              </label>
+              <label>
+                기록일
+                <input type="date" name="record_date">
+              </label>
+            </div>
+
+            <div class="trial-help">
+              각 칸을 누르면 <b>+ → P → - → 빈칸</b> 순서로 변경됩니다.
+            </div>
+
+            <div class="trial-grid" id="trialGrid">
+              {% for i in range(10) %}
+                <button type="button"
+                        class="trial"
+                        data-value=""
+                        data-index="{{ i }}"
+                        onclick="cycleTrial(this)">
+                  {{ i+1 }}
+                </button>
+              {% endfor %}
+            </div>
+
+            <div class="summary-grid">
+              <div class="summary-card">
+                <span>정반응 +</span>
+                <b id="plusCount">0</b>
+              </div>
+              <div class="summary-card">
+                <span>촉구 P</span>
+                <b id="promptCount">0</b>
+              </div>
+              <div class="summary-card">
+                <span>오반응 -</span>
+                <b id="minusCount">0</b>
+              </div>
+            </div>
+
+            <div class="save-row">
+              <button class="btn primary">회기 저장</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="session-box">
+          <h3 style="margin-top:0">기존 기록</h3>
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>회기</th>
+                <th>날짜</th>
+                <th>+</th>
+                <th>P</th>
+                <th>-</th>
+                <th>정반응률</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for st in stats %}
+              <tr>
+                <td><b>{{ st.session }}</b></td>
+                <td>{{ st.date }}</td>
+                <td>{{ st.plus }}</td>
+                <td>{{ st.prompt }}</td>
+                <td>{{ st.minus }}</td>
+                <td><b>{{ st.plus_rate }}%</b></td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="6" class="muted" style="text-align:center;padding:22px">
+                  아직 기록이 없습니다.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-function cycleTrial(btn){const o=["","+","P","-"];let v=btn.dataset.value||"";v=o[(o.indexOf(v)+1)%o.length];btn.dataset.value=v;btn.className="trial"+(v==="+"?" plus":v==="P"?" prompt":v==="-"?" minus":"");btn.textContent=v||([...btn.parentNode.children].indexOf(btn)+1);sync();}
-function sync(){const a=[...document.querySelectorAll(".trial")].map(x=>x.dataset.value||"");document.getElementById("trialsInput").value=a.join("");document.getElementById("plusCount").textContent=a.filter(x=>x==="+").length;document.getElementById("promptCount").textContent=a.filter(x=>x==="P").length;document.getElementById("minusCount").textContent=a.filter(x=>x==="-").length;}
-</script>{% endblock %}
+function cycleTrial(btn){
+  const order = ["", "+", "P", "-"];
+  const current = btn.dataset.value || "";
+  const next = order[(order.indexOf(current) + 1) % order.length];
+
+  btn.dataset.value = next;
+  btn.className = "trial" +
+    (next === "+" ? " plus" :
+     next === "P" ? " prompt" :
+     next === "-" ? " minus" : "");
+
+  btn.textContent = next || (parseInt(btn.dataset.index) + 1);
+  syncTrials();
+}
+
+function syncTrials(){
+  const buttons = [...document.querySelectorAll("#trialGrid .trial")];
+  const values = buttons.map(b => b.dataset.value || "");
+
+  document.getElementById("trialsInput").value = values.join("");
+  document.getElementById("plusCount").textContent =
+    values.filter(v => v === "+").length;
+  document.getElementById("promptCount").textContent =
+    values.filter(v => v === "P").length;
+  document.getElementById("minusCount").textContent =
+    values.filter(v => v === "-").length;
+}
+</script>
+{% endblock %}
