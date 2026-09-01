@@ -116,6 +116,46 @@ def get_programs(include_inactive=False):
 def get_program_item(area_key, item_index):
     return ProgramItem.query.filter_by(area_key=area_key, item_index=item_index, active=True).first()
 
+
+def get_area_performance(child_id, area_key):
+    """영역 내 기록된 각 세부항목의 초기/최근 정반응률 평균."""
+    items = ProgramItem.query.filter_by(area_key=area_key, active=True).all()
+    initial_rates = []
+    latest_rates = []
+    for item in items:
+        recs = (SessionRecord.query
+                .filter_by(child_id=child_id, area_key=area_key, item_index=item.item_index)
+                .order_by(SessionRecord.created_at, SessionRecord.session_no)
+                .all())
+        recs = [r for r in recs if r.trials]
+        if recs:
+            initial_rates.append(recs[0].trials.count("+") * 10)
+            latest_rates.append(recs[-1].trials.count("+") * 10)
+    if not latest_rates:
+        return {"initial": None, "latest": None, "change": None, "recorded_items": 0}
+    initial = round(sum(initial_rates) / len(initial_rates))
+    latest = round(sum(latest_rates) / len(latest_rates))
+    return {
+        "initial": initial,
+        "latest": latest,
+        "change": latest - initial,
+        "recorded_items": len(latest_rates)
+    }
+
+def get_child_area_chart(child_id):
+    rows = []
+    for key, area in get_programs().items():
+        perf = get_area_performance(child_id, key)
+        rows.append({
+            "key": key,
+            "label": area["label"],
+            "initial": perf["initial"],
+            "latest": perf["latest"],
+            "change": perf["change"],
+            "recorded_items": perf["recorded_items"]
+        })
+    return rows
+
 @login_manager.user_loader
 def load_user(user_id): return db.session.get(User, int(user_id))
 
@@ -160,7 +200,8 @@ def child_new():
 def child_detail(child_id):
     c=Child.query.get_or_404(child_id)
     if not can_access_child(c): abort(403)
-    return render_template("child_detail.html", child=c, programs=get_programs())
+    chart_rows = get_child_area_chart(child_id)
+    return render_template("child_detail.html", child=c, programs=get_programs(), chart_rows=chart_rows)
 
 @app.route("/children/<int:child_id>/program/<area_key>/<int:item_index>", methods=["GET","POST"])
 @login_required
@@ -199,21 +240,39 @@ def program(child_id, area_key, item_index):
                       "plus_rate":plus*10,"prompt_rate":prompt*10,"minus_rate":minus*10})
     area={"label":area_obj.label,"sub":area_obj.sub,"items":get_programs().get(area_key,{}).get("items",[])}
     return render_template("program.html",child=c,area_key=area_key,item_index=item_index,area=area,item=item_obj.name,
-                           programs=get_programs(),state=state,records=records,stats=stats)
+                           programs=get_programs(),state=state,records=records,stats=stats, chart_stats=stats)
 
 @app.route("/children/<int:child_id>/report")
 @login_required
 def report(child_id):
     c=Child.query.get_or_404(child_id)
     if not can_access_child(c): abort(403)
-    rows=[]
-    for key,area in get_programs().items():
-        recs=SessionRecord.query.filter_by(child_id=child_id,area_key=key).order_by(SessionRecord.created_at,SessionRecord.session_no).all()
-        rates=[r.trials.count("+")*10 for r in recs if r.trials]
-        rows.append({"label":area["label"],"initial":rates[0] if rates else None,"latest":rates[-1] if rates else None,
-                     "change":(rates[-1]-rates[0]) if rates else None})
-    summary="기록된 수행자료를 기준으로 초기 수행과 최근 수행의 변화를 비교합니다. 이 결과는 개별 아동 내 경과 비교이며 표준화 검사나 또래 규준을 의미하지 않습니다."
-    return render_template("report.html",child=c,rows=rows,summary=summary)
+    rows=get_child_area_chart(child_id)
+    valid=[r for r in rows if r["latest"] is not None]
+
+    if valid:
+        overall_initial=round(sum(r["initial"] for r in valid)/len(valid))
+        overall_latest=round(sum(r["latest"] for r in valid)/len(valid))
+        overall_change=overall_latest-overall_initial
+        improved=[r for r in valid if r["change"] is not None]
+        best=max(improved,key=lambda x:x["change"]) if improved else None
+        lowest=min(valid,key=lambda x:x["latest"])
+        summary=(
+            f"기록된 영역의 평균 정반응률은 초기 {overall_initial}%에서 최근 {overall_latest}%로 "
+            f"{abs(overall_change)}%p {'증가' if overall_change >= 0 else '감소'}하였습니다. "
+        )
+        if best and best["change"] > 0:
+            summary += f"가장 큰 향상은 {best['label']} 영역에서 확인되었습니다(+{best['change']}%p). "
+        summary += f"현재 상대적으로 낮은 수행은 {lowest['label']} 영역({lowest['latest']}%)에서 확인되어 지속적인 관찰이 필요합니다. "
+        summary += "본 결과는 사이트에 입력된 +/P/- 수행자료를 이용한 개별 아동 내 경과 비교이며 표준화 검사나 또래 규준을 의미하지 않습니다."
+    else:
+        overall_initial=overall_latest=overall_change=None
+        summary="아직 그래프와 비교 해설을 생성할 만큼 저장된 회기 기록이 없습니다."
+
+    return render_template(
+        "report.html", child=c, rows=rows, summary=summary,
+        overall_initial=overall_initial, overall_latest=overall_latest, overall_change=overall_change
+    )
 
 @app.route("/admin/users",methods=["GET","POST"])
 @login_required
