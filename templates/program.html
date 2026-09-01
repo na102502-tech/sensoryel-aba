@@ -18,6 +18,32 @@
     white-space:nowrap;
     flex:0 0 auto;
   }
+.program-nav .item.status-progress{
+    background:#2f6fda !important;
+    border-color:#2f6fda !important;
+    color:#ffffff !important;
+}
+
+.program-nav .item.status-stop{
+    background:#dc5f5b !important;
+    border-color:#dc5f5b !important;
+    color:#ffffff !important;
+}
+
+.program-nav .item.status-done{
+    background:#1aa776 !important;
+    border-color:#1aa776 !important;
+    color:#ffffff !important;
+}
+
+.program-nav .item.status-none{
+    background:#ffffff !important;
+    color:#475467 !important;
+}
+
+.program-nav .item.current{
+    box-shadow:0 0 0 3px rgba(31,41,55,.15);
+}
   .record-layout{
     display:grid;
     grid-template-columns:minmax(0,1fr) minmax(320px,.9fr);
@@ -190,12 +216,26 @@
 
     <div class="card-body">
       <div class="program-nav">
-        {% for it in area["items"] %}
-          <a class="item {% if it.item_index==item_index %}pill{% endif %}"
-             href="{{ url_for('program', child_id=child.id, area_key=area_key, item_index=it.item_index) }}">
-             {{ loop.index }}) {{ it.name }}
-          </a>
-        {% endfor %}
+    {% for it in area["items"] %}
+    {% set item_status = item_status_map.get(it.item_index, '미시작') %}
+
+    <a
+        class="item
+        {% if it.item_index == item_index %} current{% endif %}
+        {% if item_status == '진행중' %}
+            status-progress
+        {% elif item_status == '중단' %}
+            status-stop
+        {% elif item_status == '완료' %}
+            status-done
+        {% else %}
+            status-none
+        {% endif %}
+        "
+        href="{{ url_for('program', child_id=child.id, area_key=area_key, item_index=it.item_index) }}">
+        {{ loop.index }}) {{ it.name }}
+    </a>
+{% endfor %}
       </div>
 
       <div class="status-row">
