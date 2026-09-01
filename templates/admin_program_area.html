@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% block title %}{{ area.label }} 관리{% endblock %}
-{% block body %}
+{% block content %}
 <div class="card"><div class="card-head"><div><h2 style="margin:0">{{ area.label }}</h2><div class="muted">{{ area.area_key }}</div></div><a class="btn" href="{{ url_for('admin_programs') }}">← 프로그램 관리</a></div>
 <div class="card-body">
 <form method="post"><input type="hidden" name="action" value="area_edit"><div class="grid grid-2"><label>영역명<input name="label" value="{{ area.label }}" required></label><label>부제/설명<input name="sub" value="{{ area.sub or '' }}"></label></div><button class="btn" style="margin-top:10px">영역 정보 저장</button></form>
