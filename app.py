@@ -326,22 +326,40 @@ def admin_user_toggle(user_id):
         db.session.commit()
     return redirect(url_for("admin_users"))
 
+def initialize_database():
+    db.create_all()
+
+    admin_username = os.environ.get("ADMIN_USERNAME", "na102502")
+    admin_password = os.environ.get("ADMIN_PASSWORD")
+
+    admin = User.query.filter_by(username=admin_username).first()
+
+    if not admin and admin_password:
+        admin = User(
+            username=admin_username,
+            name="관리자",
+            role="admin",
+            active=True
+        )
+        admin.set_password(admin_password)
+        db.session.add(admin)
+        db.session.commit()
+
+
 @app.cli.command("init-db")
 def init_db():
-    db.create_all()
-    admin=User.query.filter_by(username="na102502").first()
-    if not admin:
-        admin=User(username="na102502",name="관리자",role="admin",active=True)
-        admin.set_password("0673")
-        db.session.add(admin); db.session.commit()
-    print("DB initialized. Admin: na102502 / 0673")
+    initialize_database()
+    print("DB initialized.")
+
+
+# Render가 켜질 때 자동으로 DB와 관리자 생성
+with app.app_context():
+    initialize_database()
+
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-        admin=User.query.filter_by(username="na102502").first()
-        if not admin:
-            admin=User(username="na102502",name="관리자",role="admin",active=True)
-            admin.set_password("0673")
-            db.session.add(admin); db.session.commit()
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT",5000)), debug=False)
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000)),
+        debug=False
+    )
