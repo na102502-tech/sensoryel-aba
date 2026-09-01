@@ -1,24 +1,18 @@
-{% extends "base.html" %}{% block content %}
-<div class="card"><div class="head"><div><small style="color:#667085">{{child.name}} &gt; {{area.label}}</small><h2>{{item_index+1}}. {{item}}</h2></div><a class="btn" href="{{url_for('child_detail',child_id=child.id)}}">아동 데이터</a></div><div class="body">
-<div class="tabs">{% for key,a in programs.items() %}<a class="tab" href="{{url_for('program',child_id=child.id,area_key=key,item_index=0)}}">{{a.label}}</a>{% endfor %}</div>
-<div class="items">{% for it in area["items"] %}<a class="item" href="{{url_for('program',child_id=child.id,area_key=area_key,item_index=loop.index0)}}">{{loop.index}}) {{it}}</a>{% endfor %}</div>
-<form method="post" class="no-print"><input type="hidden" name="action" value="status"><div style="display:flex;gap:7px;align-items:center"><b>상태</b>
-{% for s in ['진행중','중단','완료'] %}<button class="btn {% if state.status==s %}green{% endif %}" name="status" value="{{s}}">{{s}}</button>{% endfor %}</div></form>
-
-<div class="card"><div class="head"><h3>새 회기 기록</h3></div><div class="body">
-<form method="post" id="sessionForm"><input type="hidden" name="action" value="save_session"><input type="hidden" name="trials" id="trialsInput">
-<div class="formgrid"><label>회기 번호<input name="session_no" type="number" min="1" value="{{(records|length)+1}}" required></label><label>날짜<input name="record_date" type="date" value="{{records[-1].record_date if records else ''}}"></label></div>
-<p style="color:#667085;font-size:13px">각 칸을 눌러 + → P → - → 빈칸 순으로 변경합니다.</p>
-<div class="trials" id="trialGrid">{% for i in range(10) %}<div class="trial" data-v="" onclick="cycle(this)">{{i+1}}</div>{% endfor %}</div>
-<div class="metrics"><div class="metric"><small>정반응</small><b id="plusRate">0%</b></div><div class="metric"><small>촉구</small><b id="promptRate">0%</b></div><div class="metric"><small>오반응</small><b id="minusRate">0%</b></div></div>
-<p><button class="btn primary">회기 저장</button></p></form>
-</div></div>
-
-<div class="card"><div class="head"><h3>누적 기록</h3></div><div class="body"><table><thead><tr><th>회기</th><th>날짜</th><th>정반응</th><th>촉구</th><th>오반응</th></tr></thead><tbody>
-{% for s in stats %}<tr><td>{{s.session}}</td><td>{{s.date}}</td><td>{{s.plus_rate}}%</td><td>{{s.prompt_rate}}%</td><td>{{s.minus_rate}}%</td></tr>{% else %}<tr><td colspan="5">아직 기록이 없습니다.</td></tr>{% endfor %}
-</tbody></table></div></div>
-</div></div>
+{% extends "base.html" %}{% block title %}{{ child.name }} · {{ area.label }}{% endblock %}
+{% block body %}
+<div class="card"><div class="card-head"><div><div class="muted">{{ child.name }} &gt; {{ area.label }}</div><h2 style="margin:4px 0 0">{{ item }}</h2></div><a class="btn" href="{{ url_for('child_detail', child_id=child.id) }}">← 아동 데이터</a></div>
+<div class="card-body">
+<div class="items" style="margin-bottom:14px">{% for it in area["items"] %}<a class="item {% if it.item_index==item_index %}pill{% endif %}" href="{{ url_for('program',child_id=child.id,area_key=area_key,item_index=it.item_index) }}">{{ loop.index }}) {{ it.name }}</a>{% endfor %}</div>
+<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px">{% for s in ['진행중','중단','완료'] %}<form method="post"><input type="hidden" name="action" value="status"><input type="hidden" name="status" value="{{ s }}"><button class="btn {% if state.status==s %}green{% endif %}">{{ s }}</button></form>{% endfor %}<span class="pill">{{ state.status }}</span></div>
+<div class="grid grid-2"><div><h3>회기 기록</h3><form method="post"><input type="hidden" name="action" value="save_session"><input type="hidden" name="trials" id="trialsInput">
+<div class="grid grid-2"><label>회기 번호<input type="number" name="session_no" min="1" value="{{ (records|length)+1 }}" required></label><label>기록일<input type="date" name="record_date"></label></div>
+<p class="muted">각 칸을 누르면 + → P → - → 빈칸으로 변경됩니다.</p><div class="trial-grid">{% for i in range(10) %}<button type="button" class="trial" data-value="" onclick="cycleTrial(this)">{{ i+1 }}</button>{% endfor %}</div>
+<div class="grid grid-3" style="margin-top:10px"><div class="stat"><span>정반응 +</span><b id="plusCount">0</b></div><div class="stat"><span>촉구 P</span><b id="promptCount">0</b></div><div class="stat"><span>오반응 -</span><b id="minusCount">0</b></div></div>
+<button class="btn primary" style="margin-top:12px">회기 저장</button></form></div>
+<div><h3>기존 기록</h3><table class="table"><thead><tr><th>회기</th><th>날짜</th><th>+</th><th>P</th><th>-</th><th>정반응률</th></tr></thead><tbody>
+{% for st in stats %}<tr><td>{{ st.session }}</td><td>{{ st.date }}</td><td>{{ st.plus }}</td><td>{{ st.prompt }}</td><td>{{ st.minus }}</td><td><b>{{ st.plus_rate }}%</b></td></tr>{% else %}<tr><td colspan="6" class="muted">아직 기록이 없습니다.</td></tr>{% endfor %}
+</tbody></table></div></div></div></div>
 <script>
-function cycle(el){let v=el.dataset.v;v=v===''?'+':v==='+'?'P':v==='P'?'-':'';el.dataset.v=v;el.className='trial '+(v==='+'?'plus':v==='P'?'prompt':v==='-'?'minus':'');el.textContent=v||(+el.parentNode.children.length?Array.from(el.parentNode.children).indexOf(el)+1:'');sync()}
-function sync(){let vals=[...document.querySelectorAll('.trial')].map(x=>x.dataset.v);document.getElementById('trialsInput').value=vals.join('');let p=vals.filter(x=>x==='+').length,q=vals.filter(x=>x==='P').length,m=vals.filter(x=>x==='-').length;document.getElementById('plusRate').textContent=p*10+'%';document.getElementById('promptRate').textContent=q*10+'%';document.getElementById('minusRate').textContent=m*10+'%'}
+function cycleTrial(btn){const o=["","+","P","-"];let v=btn.dataset.value||"";v=o[(o.indexOf(v)+1)%o.length];btn.dataset.value=v;btn.className="trial"+(v==="+"?" plus":v==="P"?" prompt":v==="-"?" minus":"");btn.textContent=v||([...btn.parentNode.children].indexOf(btn)+1);sync();}
+function sync(){const a=[...document.querySelectorAll(".trial")].map(x=>x.dataset.value||"");document.getElementById("trialsInput").value=a.join("");document.getElementById("plusCount").textContent=a.filter(x=>x==="+").length;document.getElementById("promptCount").textContent=a.filter(x=>x==="P").length;document.getElementById("minusCount").textContent=a.filter(x=>x==="-").length;}
 </script>{% endblock %}

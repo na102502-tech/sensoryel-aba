@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block title %}{{ area.label }} 관리{% endblock %}
+{% block body %}
+<div class="card"><div class="card-head"><div><h2 style="margin:0">{{ area.label }}</h2><div class="muted">{{ area.area_key }}</div></div><a class="btn" href="{{ url_for('admin_programs') }}">← 프로그램 관리</a></div>
+<div class="card-body">
+<form method="post"><input type="hidden" name="action" value="area_edit"><div class="grid grid-2"><label>영역명<input name="label" value="{{ area.label }}" required></label><label>부제/설명<input name="sub" value="{{ area.sub or '' }}"></label></div><button class="btn" style="margin-top:10px">영역 정보 저장</button></form>
+<h3 style="margin-top:24px">세부항목</h3><table class="table"><thead><tr><th>표시순서</th><th>항목명</th><th>상태</th><th>순서</th><th></th></tr></thead><tbody>
+{% for i in items %}<tr><td>{{ loop.index }}</td><td><form method="post" action="{{ url_for('admin_program_item_edit',item_id=i.id) }}" style="display:flex;gap:6px"><input name="name" value="{{ i.name }}" style="margin:0"><button class="btn">저장</button></form><div class="muted">기록 연결번호 {{ i.item_index }}</div></td><td>{{ '사용중' if i.active else '사용중지' }}</td><td><form method="post" action="{{ url_for('admin_program_item_move',item_id=i.id,direction='up') }}" style="display:inline"><button class="btn">↑</button></form> <form method="post" action="{{ url_for('admin_program_item_move',item_id=i.id,direction='down') }}" style="display:inline"><button class="btn">↓</button></form></td><td><form method="post" action="{{ url_for('admin_program_item_toggle',item_id=i.id) }}"><button class="btn">{{ '사용중지' if i.active else '복원' }}</button></form></td></tr>{% endfor %}
+</tbody></table>
+<h3 style="margin-top:24px">새 세부항목 추가</h3><form method="post"><input type="hidden" name="action" value="add_item"><label>항목명<input name="name" required></label><button class="btn primary" style="margin-top:10px">추가</button></form>
+</div></div>{% endblock %}
