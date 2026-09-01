@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% block title %}아동 목록 · ABA 프로그램{% endblock %}
-{% block body %}
+{% block content %}
 <div class="card"><div class="card-head"><div><h2 style="margin:0">아동 목록</h2><div class="muted">재활사는 담당 아동만 표시됩니다.</div></div>
 <div>{% if current_user.role=='admin' %}
 <a class="btn" href="{{ url_for('admin_programs') }}">프로그램 관리</a>
