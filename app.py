@@ -201,7 +201,21 @@ def child_detail(child_id):
     c=Child.query.get_or_404(child_id)
     if not can_access_child(c): abort(403)
     chart_rows = get_child_area_chart(child_id)
-    return render_template("child_detail.html", child=c, programs=get_programs(), chart_rows=chart_rows)
+    all_states = ProgramState.query.filter_by(
+        child_id=child_id
+    ).all()
+
+    item_status_map = {
+        (s.area_key, s.item_index): s.status
+        for s in all_states
+    }
+    return render_template(
+    "child_detail.html",
+    child=c,
+    programs=get_programs(),
+    chart_rows=chart_rows,
+    item_status_map=item_status_map
+)
 
 @app.route("/children/<int:child_id>/program/<area_key>/<int:item_index>", methods=["GET","POST"])
 @login_required
