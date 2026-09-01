@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% block title %}{{ child.name }} · {{ area.label }}{% endblock %}
-{% block body %}
+{% block content %}
 <div class="card"><div class="card-head"><div><div class="muted">{{ child.name }} &gt; {{ area.label }}</div><h2 style="margin:4px 0 0">{{ item }}</h2></div><a class="btn" href="{{ url_for('child_detail', child_id=child.id) }}">← 아동 데이터</a></div>
 <div class="card-body">
 <div class="items" style="margin-bottom:14px">{% for it in area["items"] %}<a class="item {% if it.item_index==item_index %}pill{% endif %}" href="{{ url_for('program',child_id=child.id,area_key=area_key,item_index=it.item_index) }}">{{ loop.index }}) {{ it.name }}</a>{% endfor %}</div>
