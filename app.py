@@ -239,19 +239,31 @@ def program(child_id, area_key, item_index):
         stats.append({"session":r.session_no,"date":r.record_date,"plus":plus,"prompt":prompt,"minus":minus,
                       "plus_rate":plus*10,"prompt_rate":prompt*10,"minus_rate":minus*10})
     area={"label":area_obj.label,"sub":area_obj.sub,"items":get_programs().get(area_key,{}).get("items",[])}
-   all_states = ProgramState.query.filter_by(
-    child_id=child_id,
-    area_key=area_key
-).all()
 
-item_status_map = {
-    s.item_index: s.status
-    for s in all_states
-}
-return render_template("program.html",child=c,area_key=area_key,item_index=item_index,area=area,item=item_obj.name,
-                           programs=get_programs(),state=state,records=records,stats=stats, chart_stats=stats,
-                       item_status_map=item_status_map
-                      )
+    all_states = ProgramState.query.filter_by(
+        child_id=child_id,
+        area_key=area_key
+    ).all()
+
+    item_status_map = {
+        s.item_index: s.status
+        for s in all_states
+    }
+
+    return render_template(
+        "program.html",
+        child=c,
+        area_key=area_key,
+        item_index=item_index,
+        area=area,
+        item=item_obj.name,
+        programs=get_programs(),
+        state=state,
+        records=records,
+        stats=stats,
+        chart_stats=stats,
+        item_status_map=item_status_map
+    )
 
 @app.route("/children/<int:child_id>/report")
 @login_required
