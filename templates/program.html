@@ -140,6 +140,42 @@
     .trial{height:46px !important;font-size:16px !important}
     .session-top{grid-template-columns:1fr}
   }
+
+  .status-btn{
+    border:none !important;
+    color:#fff !important;
+    font-weight:800 !important;
+    padding:11px 18px !important;
+    border-radius:9px !important;
+    min-width:82px;
+    transition:.12s ease;
+  }
+  .status-btn.progress{
+    background:#2f6fda !important;
+  }
+  .status-btn.stop{
+    background:#dc5f5b !important;
+  }
+  .status-btn.done{
+    background:#1aa776 !important;
+  }
+  .status-btn.is-current{
+    box-shadow:0 0 0 3px rgba(31,41,55,.16), 0 4px 12px rgba(31,41,55,.12);
+    transform:translateY(-1px);
+  }
+  .current-status-badge{
+    display:inline-block;
+    padding:7px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:800;
+    color:#fff;
+  }
+  .current-status-badge.progress{background:#2f6fda}
+  .current-status-badge.stop{background:#dc5f5b}
+  .current-status-badge.done{background:#1aa776}
+  .current-status-badge.none{background:#98a2b3}
+
 </style>
 
 <div class="program-page">
@@ -163,14 +199,33 @@
       </div>
 
       <div class="status-row">
-        {% for s in ['진행중','중단','완료'] %}
-          <form method="post" style="margin:0">
-            <input type="hidden" name="action" value="status">
-            <input type="hidden" name="status" value="{{ s }}">
-            <button class="btn {% if state.status==s %}green{% endif %}">{{ s }}</button>
-          </form>
-        {% endfor %}
-        <span class="pill">현재 상태 · {{ state.status }}</span>
+        
+        <form method="post" style="margin:0">
+          <input type="hidden" name="action" value="status">
+          <input type="hidden" name="status" value="진행중">
+          <button class="status-btn progress {% if state.status=='진행중' %}is-current{% endif %}">진행중</button>
+        </form>
+        <form method="post" style="margin:0">
+          <input type="hidden" name="action" value="status">
+          <input type="hidden" name="status" value="중단">
+          <button class="status-btn stop {% if state.status=='중단' %}is-current{% endif %}">중단</button>
+        </form>
+        <form method="post" style="margin:0">
+          <input type="hidden" name="action" value="status">
+          <input type="hidden" name="status" value="완료">
+          <button class="status-btn done {% if state.status=='완료' %}is-current{% endif %}">완료</button>
+        </form>
+
+        {% if state.status == '진행중' %}
+          <span class="current-status-badge progress">현재 상태 · 진행중</span>
+        {% elif state.status == '중단' %}
+          <span class="current-status-badge stop">현재 상태 · 중단</span>
+        {% elif state.status == '완료' %}
+          <span class="current-status-badge done">현재 상태 · 완료</span>
+        {% else %}
+          <span class="current-status-badge none">현재 상태 · 미시작</span>
+        {% endif %}
+
       </div>
 
       <div class="record-layout">
@@ -264,6 +319,20 @@
           </table>
         </div>
       </div>
+
+      <div class="session-box" style="margin-top:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <div>
+            <h3 style="margin:0">회기별 수행 변화 그래프</h3>
+            <div class="muted" style="margin-top:4px">저장한 + / P / - 비율이 회기별로 자동 반영됩니다.</div>
+          </div>
+          <div style="font-size:12px;color:#667085">정반응 + · 촉구 P · 오반응 -</div>
+        </div>
+        <div style="margin-top:12px;overflow-x:auto">
+          <canvas id="sessionTrendChart" style="width:100%;min-width:680px;height:310px"></canvas>
+        </div>
+        {% if not chart_stats %}<div class="muted" style="text-align:center;padding:14px">회기를 저장하면 그래프가 표시됩니다.</div>{% endif %}
+      </div>
     </div>
   </div>
 </div>
@@ -296,5 +365,45 @@ function syncTrials(){
   document.getElementById("minusCount").textContent =
     values.filter(v => v === "-").length;
 }
+
+
+function drawSessionTrend(){
+  const data = {{ chart_stats|tojson }};
+  const canvas = document.getElementById("sessionTrendChart");
+  if(!canvas || !data || data.length===0) return;
+  drawMultiLineChart(canvas,
+    data.map(x => `${x.session}회`),
+    [
+      {name:"정반응 +", values:data.map(x=>x.plus_rate), color:"#1aa776"},
+      {name:"촉구 P", values:data.map(x=>x.prompt_rate), color:"#d9a127"},
+      {name:"오반응 -", values:data.map(x=>x.minus_rate), color:"#dc5f5b"}
+    ], 0, 100, "%");
+}
+
+function drawMultiLineChart(canvas, labels, series, minY, maxY, suffix){
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = Math.max(canvas.clientWidth || 800, 680);
+  const cssH = 310;
+  canvas.width = cssW*dpr; canvas.height = cssH*dpr;
+  const ctx = canvas.getContext("2d"); ctx.scale(dpr,dpr);
+  const pad={l:52,r:18,t:34,b:52}, w=cssW-pad.l-pad.r, h=cssH-pad.t-pad.b;
+  ctx.clearRect(0,0,cssW,cssH); ctx.font="12px Arial"; ctx.lineWidth=1;
+  for(let t=0;t<=4;t++){
+    const y=pad.t+h-(h*t/4), val=Math.round(minY+(maxY-minY)*t/4);
+    ctx.strokeStyle="#e6eaf0"; ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+w,y); ctx.stroke();
+    ctx.fillStyle="#667085"; ctx.textAlign="right"; ctx.fillText(val+suffix,pad.l-8,y+4);
+  }
+  const step=labels.length>1?w/(labels.length-1):0;
+  labels.forEach((lab,i)=>{const x=labels.length>1?pad.l+step*i:pad.l+w/2;ctx.fillStyle="#667085";ctx.textAlign="center";ctx.fillText(lab,x,pad.t+h+24);});
+  series.forEach((s,si)=>{
+    ctx.strokeStyle=s.color;ctx.fillStyle=s.color;ctx.lineWidth=3;ctx.beginPath();
+    s.values.forEach((v,i)=>{const x=labels.length>1?pad.l+step*i:pad.l+w/2;const y=pad.t+h-((v-minY)/(maxY-minY))*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.stroke();
+    s.values.forEach((v,i)=>{const x=labels.length>1?pad.l+step*i:pad.l+w/2;const y=pad.t+h-((v-minY)/(maxY-minY))*h;ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();});
+    const lx=pad.l+si*130; ctx.fillRect(lx,10,12,4); ctx.fillStyle="#344054";ctx.textAlign="left";ctx.fillText(s.name,lx+18,15);ctx.fillStyle=s.color;
+  });
+}
+window.addEventListener("load", drawSessionTrend);
+window.addEventListener("resize", drawSessionTrend);
+
 </script>
 {% endblock %}
