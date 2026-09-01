@@ -1,31 +1,47 @@
-
 <!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{{ title or "ABA 프로그램" }}</title>
+<title>{% block title %}ABA 프로그램{% endblock %}</title>
 <style>
-:root{--bg:#f5f7fa;--card:#fff;--line:#dde3ea;--text:#1f2937;--muted:#667085;--blue:#2f6fda;--green:#1aa776;--amber:#d9a127;--red:#dc5f5b;--navy:#242933}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Arial,sans-serif;color:var(--text)}
-a{text-decoration:none;color:inherit}.wrap{max-width:1300px;margin:0 auto;padding:18px}.top{background:var(--navy);color:#fff;border-radius:14px;padding:15px 18px;display:flex;justify-content:space-between;align-items:center}
-.card{background:#fff;border:1px solid var(--line);border-radius:14px;margin-top:14px;overflow:hidden}.head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center}.body{padding:16px}
-.btn{display:inline-block;border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 12px;font-weight:700;cursor:pointer}.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.green{background:var(--green);color:#fff;border-color:var(--green)}
-table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px;border-bottom:1px solid #edf0f3;text-align:left}th{background:#fafbfc;color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.info{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fbfcfd}.info small{display:block;color:var(--muted);margin-bottom:5px}
-.flash{padding:10px;border-radius:8px;background:#fff7e6;color:#8a6417;margin-top:12px}.tabs{display:flex;flex-wrap:wrap;gap:7px}.tab{padding:8px 11px;border-radius:7px;border:1px solid #9db7e3;color:#355b96;background:#fff}.items{display:flex;gap:7px;overflow:auto;padding:10px 0}.item{white-space:nowrap;padding:7px 10px;border:1px solid #9ac9b5;border-radius:7px;color:#3c7f65}
-.trials{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.trial{height:46px;border:1px solid #cfd6df;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;background:#f8fafc;cursor:pointer}.plus{background:var(--green);color:#fff}.prompt{background:#f4ce68;color:#70500f}.minus{background:#e56d68;color:#fff}
-.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.metric{border:1px solid var(--line);border-radius:8px;padding:10px}.metric small{display:block;color:var(--muted)}
-input,select,textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;margin-top:5px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}}
-@media print{.no-print,.top{display:none!important}.wrap{max-width:none;padding:0}.card{border:0;margin:0}}
+:root{
+  --bg:#f3f6fb;--surface:#ffffff;--surface2:#f8fafc;--text:#172033;--muted:#667085;
+  --line:#dfe5ee;--navy:#1d2433;--blue:#315fcb;--blue2:#edf3ff;--green:#16a36f;
+  --green2:#eaf8f2;--amber:#d5a126;--red:#d85b57;--shadow:0 12px 32px rgba(31,41,55,.08)
+}
+*{box-sizing:border-box} html,body{min-height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Arial,sans-serif;background:linear-gradient(180deg,#f7f9fc 0,#f1f5f9 100%);margin:0;color:var(--text)}
+a{text-decoration:none;color:inherit}button,input,select,textarea{font:inherit}
+.header{position:sticky;top:0;z-index:20;background:rgba(29,36,51,.97);color:white;padding:12px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.brand-wrap{display:flex;align-items:center;gap:11px}.brand-mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#5d82e6,#315fcb);display:grid;place-items:center;font-weight:900;letter-spacing:-1px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.brand-title{font-size:17px;font-weight:900}.brand-sub{font-size:11px;color:#bfc8d8;margin-top:1px}.user-zone{display:flex;align-items:center;gap:10px;font-size:12px}
+.wrap{max-width:1320px;margin:auto;padding:24px 20px 40px}.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;margin-bottom:16px;box-shadow:0 4px 18px rgba(31,41,55,.035);overflow:hidden}
+.card-head,.head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}.card-body,.body{padding:18px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 13px;border:1px solid var(--line);border-radius:9px;background:white;text-decoration:none;color:var(--text);font-weight:750;cursor:pointer;transition:.14s ease}.btn:hover{transform:translateY(-1px);box-shadow:0 5px 12px rgba(31,41,55,.06)}
+.btn.primary,.primary{background:var(--blue);color:white;border-color:var(--blue)}.btn.green,.green{background:var(--green);color:white;border-color:var(--green)}
+.table{width:100%;border-collapse:collapse}.table th,.table td{padding:11px 10px;border-bottom:1px solid #edf0f3;text-align:left}.table th{background:#fafbfc;color:var(--muted);font-size:12px}.table tr:last-child td{border-bottom:0}
+.grid{display:grid;gap:10px}.g2,.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3,.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+label{font-size:12px;color:var(--muted);font-weight:700}input,select,textarea{width:100%;box-sizing:border-box;margin-top:5px;padding:10px;border:1px solid var(--line);border-radius:9px;background:white;color:var(--text)}input:focus,select:focus,textarea:focus{outline:3px solid rgba(49,95,203,.10);border-color:#8da7e4}
+.items{display:flex;gap:7px;flex-wrap:wrap}.item{padding:7px 10px;border:1px solid #9ac9b5;border-radius:8px;text-decoration:none;color:#367c61;background:white}.pill{display:inline-block;padding:5px 8px;border-radius:999px;background:var(--green2);color:#137d59;font-size:11px;font-weight:800}
+.muted{color:var(--muted);font-size:12px}.flash{background:#fff8e7;border:1px solid #f0d699;padding:10px 12px;border-radius:9px;margin-bottom:12px}.area{border:1px solid var(--line);border-radius:12px;padding:13px;background:#fff}
+.trial-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.trial{height:46px;border:1px solid var(--line);border-radius:8px;font-weight:900}.plus{background:var(--green);color:#fff}.prompt{background:#f4ce68}.minus{background:#e56d68;color:#fff}
+.hero-strip{background:linear-gradient(135deg,#1f2b43 0%,#2d4271 58%,#315fcb 100%);color:#fff;border-radius:18px;padding:24px 26px;box-shadow:var(--shadow);margin-bottom:18px;position:relative;overflow:hidden}.hero-strip:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-90px;top:-110px;background:rgba(255,255,255,.07)}.hero-strip h1{margin:0;font-size:25px;letter-spacing:-.6px}.hero-strip p{margin:8px 0 0;color:#dbe5fb;font-size:13px;max-width:680px;line-height:1.6}
+.stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}.stat-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px}.stat-box span{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}.stat-box b{font-size:22px}.quick-actions{display:flex;gap:8px;flex-wrap:wrap}.section-title{font-size:19px;font-weight:900;margin:0}.section-desc{font-size:12px;color:var(--muted);margin-top:4px}
+@media(max-width:760px){.g2,.g3,.grid-2,.grid-3,.stat-grid{grid-template-columns:1fr}.wrap{padding:16px 12px 30px}.header{padding:10px 12px}.user-zone span{display:none}.hero-strip{padding:20px}.hero-strip h1{font-size:21px}}
+@media print{.header,.no-print{display:none!important}.wrap{max-width:none;padding:0}.card{border:0;box-shadow:none}.hero-strip{display:none}}
 </style>
 </head>
 <body>
+{% if current_user.is_authenticated %}
+<div class="header">
+  <div class="brand-wrap"><div class="brand-mark">ABA</div><div><div class="brand-title">ABA 프로그램</div><div class="brand-sub">Sensoryel Clinical Program System</div></div></div>
+  <div class="user-zone"><span>{{ current_user.name }} · {{ '관리자' if current_user.role=='admin' else '재활사' }}</span><a class="btn" style="padding:7px 10px;background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.18)" href="{{ url_for('logout') }}">로그아웃</a></div>
+</div>
+{% endif %}
 <div class="wrap">
-<div class="top"><b>ABA 프로그램</b><div>{{ current_user.name if current_user.is_authenticated else "" }}{% if current_user.is_authenticated %} · <a href="{{ url_for('logout') }}">로그아웃</a>{% endif %}</div></div>
-{% with messages = get_flashed_messages() %}{% if messages %}{% for m in messages %}<div class="flash">{{m}}</div>{% endfor %}{% endif %}{% endwith %}
-{% block content %}{% endblock %}
+{% with messages=get_flashed_messages() %}{% for m in messages %}<div class="flash">{{m}}</div>{% endfor %}{% endwith %}
+{% block content %}{% block body %}{% endblock %}{% endblock %}
 </div>
 </body>
 </html>

@@ -1,6 +1,36 @@
-
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ABA 프로그램 로그인</title>
-<style>body{margin:0;background:#eef2f6;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Arial,sans-serif}.box{width:min(420px,calc(100% - 32px));margin:11vh auto;background:#fff;border:1px solid #dde3ea;border-radius:16px;padding:28px;box-shadow:0 18px 50px rgba(31,41,55,.12)}h1{margin:0 0 6px}.sub{color:#667085;margin-bottom:22px}input{width:100%;box-sizing:border-box;padding:11px;border:1px solid #dde3ea;border-radius:8px;margin:6px 0 12px}.btn{width:100%;padding:11px;border:0;border-radius:8px;background:#2f6fda;color:#fff;font-weight:800}.flash{padding:10px;background:#fff1f1;color:#b42318;border-radius:8px;margin-bottom:12px;font-size:13px}</style></head>
-<body><div class="box"><h1>ABA 프로그램</h1><div class="sub">Sensoryel ABA 프로그램 기록 시스템</div>
-{% with messages=get_flashed_messages() %}{% if messages %}{% for m in messages %}<div class="flash">{{m}}</div>{% endfor %}{% endif %}{% endwith %}
-<form method="post"><label>아이디<input name="username" required></label><label>비밀번호<input name="password" type="password" required></label><button class="btn">로그인</button></form></div></body></html>
+{% extends "base.html" %}
+{% block title %}로그인 · ABA 프로그램{% endblock %}
+{% block content %}
+<style>
+body{background:radial-gradient(circle at 15% 15%,#e8efff 0,transparent 34%),radial-gradient(circle at 88% 80%,#e9f7f1 0,transparent 32%),#f4f7fb}
+.wrap{max-width:none;padding:0}.login-shell{min-height:100vh;display:grid;grid-template-columns:1.08fr .92fr;align-items:stretch}.login-info{padding:70px 7vw;background:linear-gradient(145deg,#1e2a42 0,#263b67 60%,#315fcb 100%);color:white;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center}.login-info:before,.login-info:after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.06)}.login-info:before{width:420px;height:420px;right:-180px;top:-130px}.login-info:after{width:280px;height:280px;left:-130px;bottom:-100px}.login-badge{display:inline-flex;align-items:center;gap:8px;width:max-content;padding:7px 10px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(255,255,255,.06);font-size:12px;color:#e7edfb}.login-info h1{font-size:42px;line-height:1.08;letter-spacing:-1.4px;margin:20px 0 14px;max-width:560px}.login-info p{color:#d5dff2;font-size:15px;line-height:1.75;max-width:570px}.feature-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:600px;margin-top:28px}.feature{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.055);border-radius:13px;padding:13px}.feature b{display:block;font-size:13px;margin-bottom:4px}.feature span{font-size:11px;color:#c8d4ea;line-height:1.5}.login-side{display:flex;align-items:center;justify-content:center;padding:40px}.login-card{width:min(430px,100%);background:#fff;border:1px solid #e0e5ed;border-radius:20px;box-shadow:0 24px 70px rgba(31,41,55,.14);padding:30px}.login-card .logo{width:54px;height:54px;border-radius:15px;background:linear-gradient(135deg,#5d82e6,#315fcb);display:grid;place-items:center;color:white;font-weight:900;margin-bottom:18px}.login-card h2{margin:0;font-size:24px}.login-card .sub{color:#667085;font-size:13px;line-height:1.6;margin:7px 0 22px}.login-card label{display:block;margin-top:12px}.login-card input{height:44px}.login-btn{width:100%;height:46px;margin-top:20px}.secure-note{margin-top:16px;padding:11px 12px;border-radius:10px;background:#f7f9fc;color:#667085;font-size:11px;line-height:1.55}.role-note{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}.role-chip{padding:6px 8px;border-radius:8px;background:#eef3ff;color:#345aab;font-size:11px;font-weight:800}
+@media(max-width:850px){.login-shell{grid-template-columns:1fr}.login-info{display:none}.login-side{min-height:100vh;padding:20px}}
+</style>
+<div class="login-shell">
+  <section class="login-info">
+    <div class="login-badge">Sensoryel · Clinical Data System</div>
+    <h1>아동의 변화를<br>기록하고, 한눈에 봅니다.</h1>
+    <p>ABA 프로그램 수행기록, 담당 아동 관리, 회기별 정반응·촉구·오반응 데이터와 변화 그래프를 하나의 시스템에서 관리합니다.</p>
+    <div class="feature-list">
+      <div class="feature"><b>아동별 프로그램 기록</b><span>영역과 세부항목별 진행 상태 및 회기 데이터를 관리합니다.</span></div>
+      <div class="feature"><b>자동 그래프</b><span>저장된 수행자료를 기반으로 회기 및 영역별 변화를 시각화합니다.</span></div>
+      <div class="feature"><b>권한 분리</b><span>관리자와 재활사 계정을 구분하고 담당 아동 접근을 제한합니다.</span></div>
+      <div class="feature"><b>결과지 출력</b><span>초기·최근 변화와 자동 해설을 결과지 형태로 확인합니다.</span></div>
+    </div>
+  </section>
+  <section class="login-side">
+    <div class="login-card">
+      <div class="logo">ABA</div>
+      <h2>ABA 프로그램 로그인</h2>
+      <div class="sub">Sensoryel 아동별 ABA 프로그램 기록 시스템에 접속합니다.</div>
+      <form method="post">
+        <label>아이디<input name="username" autocomplete="username" placeholder="아이디 입력" required></label>
+        <label>비밀번호<input type="password" name="password" autocomplete="current-password" placeholder="비밀번호 입력" required></label>
+        <button class="btn primary login-btn">로그인</button>
+      </form>
+      <div class="role-note"><span class="role-chip">관리자</span><span class="role-chip">재활사</span><span class="role-chip">담당 아동 권한관리</span></div>
+      <div class="secure-note">🔒 본 시스템은 센터 내부 기록용입니다. 계정 정보와 아동 기록은 허가된 사용자만 열람해 주세요.</div>
+    </div>
+  </section>
+</div>
+{% endblock %}

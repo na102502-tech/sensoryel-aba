@@ -1,12 +1,24 @@
 {% extends "base.html" %}{% block title %}아동 목록 · ABA 프로그램{% endblock %}
 {% block content %}
-<div class="card"><div class="card-head"><div><h2 style="margin:0">아동 목록</h2><div class="muted">재활사는 담당 아동만 표시됩니다.</div></div>
-<div>{% if current_user.role=='admin' %}
-<a class="btn" href="{{ url_for('admin_programs') }}">프로그램 관리</a>
-<a class="btn" href="{{ url_for('admin_users') }}">계정 관리</a>
-<a class="btn primary" href="{{ url_for('child_new') }}">+ 새 아동 추가</a>
-{% endif %}</div></div>
-<div class="card-body"><table class="table"><thead><tr><th>아동 이름</th><th>생년월일</th><th>담당 재활사</th><th>서비스 시작일</th><th>상태</th></tr></thead><tbody>
-{% for c in children %}<tr><td><a style="color:#2f6fda;font-weight:800" href="{{ url_for('child_detail', child_id=c.id) }}">{{ c.name }}</a></td><td>{{ c.birth_date or '-' }}</td><td>{{ c.therapist.name if c.therapist else '-' }}</td><td>{{ c.start_date or '-' }}</td><td><span class="pill">{{ c.status }}</span></td></tr>
-{% else %}<tr><td colspan="5" class="muted">등록된 아동이 없습니다.</td></tr>{% endfor %}
-</tbody></table></div></div>{% endblock %}
+<div class="hero-strip">
+  <h1>{{ '관리자 대시보드' if current_user.role=='admin' else current_user.name ~ ' 재활사 대시보드' }}</h1>
+  <p>아동별 ABA 프로그램 진행과 기록을 관리합니다. 저장된 회기 데이터는 아동 상세화면과 결과지의 변화 그래프에 자동 반영됩니다.</p>
+</div>
+<div class="stat-grid">
+  <div class="stat-box"><span>현재 표시 아동</span><b>{{ children|length }}명</b></div>
+  <div class="stat-box"><span>접속 권한</span><b style="font-size:17px">{{ '전체 관리' if current_user.role=='admin' else '담당 아동' }}</b></div>
+  <div class="stat-box"><span>기록 시스템</span><b style="font-size:17px">ABA 9개 영역</b></div>
+</div>
+<div class="card">
+  <div class="card-head">
+    <div><h2 class="section-title">아동 목록</h2><div class="section-desc">{{ '전체 아동을 조회하고 프로그램·계정을 관리할 수 있습니다.' if current_user.role=='admin' else '담당 아동만 표시됩니다.' }}</div></div>
+    <div class="quick-actions">{% if current_user.role=='admin' %}<a class="btn" href="{{ url_for('admin_programs') }}">⚙ 프로그램 관리</a><a class="btn" href="{{ url_for('admin_users') }}">👤 계정 관리</a><a class="btn primary" href="{{ url_for('child_new') }}">＋ 새 아동 추가</a>{% endif %}</div>
+  </div>
+  <div class="card-body" style="padding-top:8px;overflow-x:auto">
+    <table class="table"><thead><tr><th>아동 이름</th><th>생년월일</th><th>담당 재활사</th><th>서비스 시작일</th><th>상태</th></tr></thead><tbody>
+    {% for c in children %}<tr><td><a style="color:#315fcb;font-weight:900" href="{{ url_for('child_detail', child_id=c.id) }}">{{ c.name }}</a></td><td>{{ c.birth_date or '-' }}</td><td>{{ c.therapist.name if c.therapist else '-' }}</td><td>{{ c.start_date or '-' }}</td><td><span class="pill">{{ c.status }}</span></td></tr>
+    {% else %}<tr><td colspan="5" class="muted" style="padding:28px;text-align:center">등록된 아동이 없습니다.</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+</div>
+{% endblock %}

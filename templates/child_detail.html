@@ -3,8 +3,22 @@
 <div class="card"><div class="card-head"><div><h2 style="margin:0">{{ child.name }} 아동 데이터</h2><div class="muted">{{ child.birth_date or '-' }} · 담당 {{ child.therapist.name if child.therapist else '-' }}</div></div>
 <div><a class="btn" href="{{ url_for('children') }}">← 목록</a> <a class="btn green" href="{{ url_for('report', child_id=child.id) }}">평가 비교 · 결과지</a></div></div>
 <div class="card-body">
+<div style="border:1px solid #dde3ea;border-radius:12px;padding:16px;margin-bottom:18px;background:#fff">
+  <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap"><div><h3 style="margin:0">영역별 현재 수행 그래프</h3><div class="muted" style="margin-top:4px">각 영역에서 기록된 세부항목의 최근 정반응률 평균입니다.</div></div><a class="btn" href="{{ url_for('report',child_id=child.id) }}">초기·최근 비교 보기</a></div>
+  <div style="overflow-x:auto;margin-top:10px"><canvas id="areaCurrentChart" style="width:100%;min-width:850px;height:330px"></canvas></div>
+  {% if not chart_rows|selectattr('latest','ne',none)|list %}<div class="muted" style="text-align:center;padding:10px">회기 기록이 쌓이면 영역별 그래프가 자동 생성됩니다.</div>{% endif %}
+</div>
 {% for key, area in programs.items() %}
 <div class="area" style="margin-bottom:10px"><h3>{{ area.label }} <span class="muted">· {{ area.sub }}</span></h3>
 <div class="items">{% for item in area["items"] %}<a class="item" href="{{ url_for('program', child_id=child.id, area_key=key, item_index=item.item_index) }}">{{ loop.index }}) {{ item.name }}</a>{% endfor %}</div></div>
 {% endfor %}
-</div></div>{% endblock %}
+</div></div>
+<script>
+function drawAreaCurrent(){
+ const rows={{ chart_rows|tojson }}; const usable=rows.map(r=>({label:r.label.replace(/^\\d+\\s*/,''),value:r.latest===null?0:r.latest,has:r.latest!==null}));
+ const c=document.getElementById('areaCurrentChart'); if(!c)return; drawLine(c,usable);
+}
+function drawLine(c,data){const dpr=window.devicePixelRatio||1,W=Math.max(c.clientWidth||900,850),H=330;c.width=W*dpr;c.height=H*dpr;const x=c.getContext('2d');x.scale(dpr,dpr);const p={l:55,r:25,t:35,b:70},w=W-p.l-p.r,h=H-p.t-p.b;x.clearRect(0,0,W,H);x.font='12px Arial';for(let t=0;t<=4;t++){let y=p.t+h-h*t/4,v=t*25;x.strokeStyle='#e6eaf0';x.beginPath();x.moveTo(p.l,y);x.lineTo(p.l+w,y);x.stroke();x.fillStyle='#667085';x.textAlign='right';x.fillText(v+'%',p.l-8,y+4)}let st=data.length>1?w/(data.length-1):0;x.strokeStyle='#c94f70';x.fillStyle='#c94f70';x.lineWidth=3;x.beginPath();data.forEach((d,i)=>{let xx=data.length>1?p.l+st*i:p.l+w/2,yy=p.t+h-d.value/100*h;if(i===0)x.moveTo(xx,yy);else x.lineTo(xx,yy)});x.stroke();data.forEach((d,i)=>{let xx=data.length>1?p.l+st*i:p.l+w/2,yy=p.t+h-d.value/100*h;x.globalAlpha=d.has?1:.25;x.beginPath();x.arc(xx,yy,5,0,Math.PI*2);x.fill();x.globalAlpha=1;x.fillStyle='#667085';x.textAlign='center';x.save();x.translate(xx,p.t+h+24);x.rotate(-0.35);x.fillText(d.label,0,0);x.restore();x.fillStyle='#c94f70'});}
+window.addEventListener('load',drawAreaCurrent);window.addEventListener('resize',drawAreaCurrent);
+</script>
+{% endblock %}
